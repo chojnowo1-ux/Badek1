@@ -1,0 +1,57 @@
+name: Build BubbleBot Pro APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, master]
+    paths:
+      - 'BubbleBotPro_v0.3_GitHub_Actions_FIXED.zip'
+      - '.github/workflows/build-apk.yml'
+
+jobs:
+  android-debug:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Pobierz repozytorium
+        uses: actions/checkout@v4
+
+      - name: Rozpakuj BubbleBot Pro 0.3
+        run: |
+          unzip -t BubbleBotPro_v0.3_GitHub_Actions_FIXED.zip
+          mkdir -p project
+          unzip -q BubbleBotPro_v0.3_GitHub_Actions_FIXED.zip -d project
+          test -f project/BubbleBotPro/app/build.gradle
+
+      - name: Ustaw Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Skonfiguruj Android SDK
+        uses: android-actions/setup-android@v4
+        with:
+          packages: ''
+
+      - name: Zainstaluj Android 35
+        run: sdkmanager --install 'platforms;android-35' 'build-tools;35.0.0'
+
+      - name: Skonfiguruj Gradle 8.9
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: Testy kolorow i celowania
+        run: sh project/BubbleBotPro/tests/run_tests.sh
+
+      - name: Zbuduj APK
+        run: gradle --no-daemon --stacktrace -p project/BubbleBotPro assembleDebug
+
+      - name: Udostepnij APK do pobrania
+        uses: actions/upload-artifact@v4
+        with:
+          name: BubbleBotPro-v0.3-APK
+          path: project/BubbleBotPro/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
