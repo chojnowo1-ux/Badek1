@@ -1,4 +1,4 @@
-name: Build BubbleBot Pro APK
+name: Build BubbleBot Pro 0.3 APK
 
 on:
   workflow_dispatch:
@@ -6,22 +6,23 @@ on:
     branches: [main, master]
     paths:
       - 'BubbleBotPro_0.3.zip'
-      - '.github/workflows/build-apk.yml'
+      - '.github/workflows/build-apk-zip.yml'
 
 jobs:
   android-debug:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+
     steps:
       - name: Pobierz repozytorium
         uses: actions/checkout@v4
 
-      - name: Rozpakuj BubbleBot Pro 0.3
+      - name: Rozpakuj BubbleBot Pro
         run: |
-          unzip -t BubbleBotPro_v0.3_GitHub_Actions_FIXED.zip
+          unzip -t BubbleBotPro_0.3.zip
           mkdir -p project
-          unzip -q BubbleBotPro_v0.3_GitHub_Actions_FIXED.zip -d project
+          unzip -q BubbleBotPro_0.3.zip -d project
           test -f project/BubbleBotPro/app/build.gradle
 
       - name: Ustaw Java 17
@@ -35,21 +36,22 @@ jobs:
         with:
           packages: ''
 
-      - name: Zainstaluj Android 35
-        run: sdkmanager --install 'platforms;android-35' 'build-tools;35.0.0'
+      - name: Zainstaluj Android SDK 35
+        run: |
+          sdkmanager --install 'platforms;android-35' 'build-tools;35.0.0'
 
-      - name: Skonfiguruj Gradle 8.9
+      - name: Skonfiguruj Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
 
-      - name: Testy kolorow i celowania
-        run: sh project/BubbleBotPro/tests/run_tests.sh
+      - name: Testy rozpoznawania kolorow
+        run: bash project/BubbleBotPro/tests/run_tests.sh
 
       - name: Zbuduj APK
         run: gradle --no-daemon --stacktrace -p project/BubbleBotPro assembleDebug
 
-      - name: Udostepnij APK do pobrania
+      - name: Udostepnij APK
         uses: actions/upload-artifact@v4
         with:
           name: BubbleBotPro-v0.3-APK
