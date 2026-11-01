@@ -5,7 +5,7 @@ on:
   push:
     branches: [main, master]
     paths:
-      - 'BubbleBotPro_v0.3_GitHub_Actions_FIXED.zip'
+      - 'BubbleBotPro_0.3.zip'
       - '.github/workflows/build-apk.yml'
 
 jobs:
